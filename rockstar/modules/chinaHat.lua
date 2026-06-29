@@ -21,19 +21,19 @@ local function createHat(char)
     local mesh = Instance.new("SpecialMesh", hat)
     mesh.MeshType = Enum.MeshType.FileMesh
     mesh.MeshId = "rbxassetid://1033714"
-    mesh.Scale = Vector3.new(2, 1, 2)
+    mesh.Scale = Config.ChinaHatScale
     
     local weld = Instance.new("Weld", hat)
     weld.Part0 = head
     weld.Part1 = hat
-    weld.C0 = CFrame.new(0, 0.8, 0)
+    weld.C0 = CFrame.new(0, 0.85, 0)
     
     hat.Parent = char
     ActiveHat = hat
 end
 
 shared.HatConnection = RunService.RenderStepped:Connect(function()
-    if not Config.ChinaHat then
+    if not Config.ChinaHatEnabled then
         if ActiveHat then ActiveHat:Destroy() ActiveHat = nil end
         return
     end
@@ -42,10 +42,8 @@ shared.HatConnection = RunService.RenderStepped:Connect(function()
     if char and not ActiveHat then
         createHat(char)
     elseif ActiveHat then
-        -- Анимация плавного перелива цвета оттенка
-        local shift = math.sin(tick() * 2) * 0.08
+        local shift = math.sin(tick() * Config.ColorShiftSpeed) * 0.08
         local h, s, v = Config.AccentColor:ToHSV()
         ActiveHat.Color = Color3.fromHSV((h + shift) % 1, s, v)
     end
 end)
-
