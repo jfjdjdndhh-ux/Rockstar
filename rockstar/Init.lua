@@ -1,33 +1,31 @@
--- =========================================================================
--- ROCKSTAR CLIENT INITIALIZER (DIRECT GITHUB PATH)
--- =========================================================================
-
--- Глобальная таблица чита для синхронизации настроек между всеми файлами
+-- Глобальная таблица чита
 shared.Rockstar = {
     Config = {
-        AccentColor = Color3.fromRGB(170, 90, 255), -- Фиолетовый
+        AccentColor = Color3.fromRGB(170, 90, 255),
         
-        -- Состояния функций (вкл/выкл)
-        ChinaHat = false,
-        Trails = false,
-        JumpCircle = false,
-        Arrows = false,
+        ChinaHatEnabled = false,
+        JumpCircleEnabled = false,
+        ArrowsEnabled = false,
         
-        -- Настройки конкретно для Arrows (Стрелочки)
-        ArrowsRadius = 120,          -- Расстояние от центра экрана
-        ArrowsSize = 14,            -- Размер треугольников
-        ArrowsShowPlayers = true,   -- Показывать обычных игроков
-        ArrowsShowFriends = true,   -- Показывать друзей
+        ArrowsRadius = 120,
+        ArrowsSize = 14,
+        ArrowsShowPlayers = true,
+        ArrowsShowFriends = true,
+        
+        ChinaHatScale = Vector3.new(2, 1, 2),
+        ColorShiftSpeed = 2
     },
-    -- Прямой путь к твоим raw-файлам на GitHub
     BaseUrl = "https://raw.githubusercontent.com/jfjdjdndhh-ux/Rockstar/main/rockstar/"
 }
 
 local Rockstar = shared.Rockstar
 
--- Функция безопасной подгрузки файлов с твоего гитхаба
+-- Функция подгрузки файлов с АНТИ-КЭШЕМ
 local function loadRockstarFile(path)
-    local fileUrl = Rockstar.BaseUrl .. path
+    -- tick() добавляет текущее время в конец ссылки. 
+    -- Это заставляет Роблокс скачивать новый файл каждый раз, а не брать старый из памяти.
+    local fileUrl = Rockstar.BaseUrl .. path .. "?nocache=" .. tostring(tick())
+    
     local success, content = pcall(game.HttpGet, game, fileUrl)
     
     if success and content then
@@ -35,15 +33,12 @@ local function loadRockstarFile(path)
         if func then
             task.spawn(func)
         else
-            warn("[Rockstar Error] Сбой компиляции файла: " .. path .. " | " .. tostring(err))
+            warn("[Rockstar] Ошибка компиляции " .. path .. ": " .. tostring(err))
         end
     else
-        warn("[Rockstar Error] Не удалось скачать файл по пути: " .. fileUrl)
+        warn("[Rockstar] Ошибка скачивания: " .. fileUrl)
     end
 end
 
--- Загружаем интерфейс (Главное меню и HUD элементы из папки gui)
+-- Загружаем главное меню
 loadRockstarFile("gui/gui.lua")
-loadRockstarFile("gui/hud.lua")
-
-print("[Rockstar] Успешно запущен из репозитория jfjdjdndhh-ux!")
