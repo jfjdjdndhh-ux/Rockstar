@@ -16,6 +16,7 @@ local COLORS = {
     AccentPink = Color3.fromRGB(242, 155, 180),
     TextWhite = Color3.fromRGB(255, 255, 255),
     TextGray = Color3.fromRGB(140, 140, 145),
+    ButtonHover = Color3.fromRGB(30, 30, 38),
     Lines = Color3.fromRGB(25, 25, 32)
 }
 
@@ -25,7 +26,6 @@ local rockstarGui = Instance.new("ScreenGui", playerGui)
 rockstarGui.Name = "RockstarGui"
 rockstarGui.ResetOnSpawn = false
 
--- Оригинальные размеры 760x440 без ломающих UIScale
 local mainFrame = Instance.new("Frame", rockstarGui)
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 760, 0, 440)
@@ -34,7 +34,7 @@ mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = COLORS.Background
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
--- Поддержка Touch + Mouse для перетаскивания на смартфонах
+-- Универсальный Драггер Touch + Mouse для телефонов
 local function makeDraggable(gui, dragHandle)
     local dragging, dragInput, dragStart, startPos
     dragHandle.InputBegan:Connect(function(input)
@@ -54,7 +54,7 @@ local function makeDraggable(gui, dragHandle)
     end)
 end
 
--- Левый сайдбар
+-- Сайдбар
 local sidebar = Instance.new("Frame", mainFrame)
 sidebar.Size = UDim2.new(0, 45, 1, 0)
 sidebar.BackgroundColor3 = COLORS.Sidebar
@@ -66,9 +66,9 @@ sidebarIcons.Position = UDim2.new(0, 0, 0, 55)
 sidebarIcons.BackgroundTransparency = 1
 local sideLayout = Instance.new("UIListLayout", sidebarIcons)
 sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-sideLayout.Padding = UDim.new(0, 10)
+sideLayout.Padding = UDim.new(0, 15)
 
--- Средняя панель (Список модулей)
+-- Список Модулей
 local moduleList = Instance.new("Frame", mainFrame)
 moduleList.Size = UDim2.new(0, 140, 1, 0)
 moduleList.Position = UDim2.new(0, 45, 0, 0)
@@ -90,9 +90,10 @@ scrollModules.Size = UDim2.new(1, 0, 1, -45)
 scrollModules.Position = UDim2.new(0, 0, 0, 45)
 scrollModules.BackgroundTransparency = 1
 scrollModules.ScrollBarThickness = 0
-Instance.new("UIListLayout", scrollModules).Padding = UDim.new(0, 2)
+local modLayout = Instance.new("UIListLayout", scrollModules)
+modLayout.Padding = UDim.new(0, 2)
 
--- Правая рабочая область под настройки карточек
+-- Настройки (Правая часть)
 local contentFrame = Instance.new("Frame", mainFrame)
 contentFrame.Size = UDim2.new(1, -185, 1, 0)
 contentFrame.Position = UDim2.new(0, 185, 0, 0)
@@ -114,7 +115,6 @@ local columnsContainer = Instance.new("Frame", mainSettingsScroll)
 columnsContainer.Size = UDim2.new(1, -15, 0, 0)
 columnsContainer.AutomaticSize = Enum.AutomaticSize.Y
 columnsContainer.BackgroundTransparency = 1
-
 local columnsGrid = Instance.new("UIGridLayout", columnsContainer)
 columnsGrid.CellPadding = UDim2.new(0, 12, 0, 12)
 columnsGrid.CellSize = UDim2.new(0.5, -6, 0, 110)
@@ -128,7 +128,7 @@ local function clearRightPanel()
     end
 end
 
--- Конструктор оригинальных карточек
+-- Оригинальный конструктор карточек
 local function createCard(titleText, rightText)
     local card = Instance.new("Frame", columnsContainer)
     card.BackgroundColor3 = COLORS.ElementBg
@@ -170,7 +170,7 @@ local function createCard(titleText, rightText)
     return card, holder, rt
 end
 
--- Кнопки-переключатели параметров внутри карточек
+-- Оригинальные теги/кнопки
 local function createCardTag(holder, text, configKey)
     local btn = Instance.new("TextButton", holder)
     btn.BackgroundColor3 = Config[configKey] and COLORS.AccentPink or COLORS.Background
@@ -181,7 +181,6 @@ local function createCardTag(holder, text, configKey)
     btn.AutomaticSize = Enum.AutomaticSize.X
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
     Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 6)
-    btn.Parent.UIListLayout.Parent.Parent.UIPadding.Parent.UIPadding.PaddingRight = UDim.new(0, 6) -- Безопасный патч отступов
 
     btn.MouseButton1Click:Connect(function()
         Config[configKey] = not Config[configKey]
@@ -193,7 +192,7 @@ local function createCardTag(holder, text, configKey)
     end)
 end
 
--- Интерактивный Слайдер для правой панели
+-- Оригинальный Слайдер
 local function createCardSlider(holder, min, max, configKey, lbl)
     local sBg = Instance.new("Frame", holder)
     sBg.Size = UDim2.new(1, 0, 0, 4)
@@ -230,7 +229,6 @@ local function createCardSlider(holder, min, max, configKey, lbl)
     end)
 end
 
--- Автозапуск зависимых модулей при первом обращении
 local loadedModules = {}
 local function loadModuleScript(name)
     if not loadedModules[name] then
@@ -241,34 +239,30 @@ local function loadModuleScript(name)
     end
 end
 
--- Динамическое переключение правого окна настроек по клику на модули
+-- Динамическое обновление настроек при клике
 local function openSettingsFor(modName)
     clearRightPanel()
     loadModuleScript(modName)
     
     if modName == "chinaHat" then
-        local _, h = createCard("Настройки Шапки", nil)
-        createCardTag(h, "Активировать ChinaHat", "ChinaHat")
+        local _, h = createCard("ElytraTarget", nil)
+        createCardTag(h, "Активировать ChinaHat", "ChinaHatEnabled")
     elseif modName == "jumpCircle" then
-        local _, h = createCard("Настройки Кругов", nil)
-        createCardTag(h, "Активировать JumpCircle", "JumpCircle")
+        local _, h = createCard("ElytraTarget", nil)
+        createCardTag(h, "Активировать JumpCircle", "JumpCircleEnabled")
     elseif modName == "arrows" then
-        local _, h1 = createCard("Включить модуль", nil)
-        createCardTag(h1, "Активировать Стрелочки", "Arrows")
+        local _, h1 = createCard("ElytraTarget", nil)
+        createCardTag(h1, "Активировать Стрелочки", "ArrowsEnabled")
         
         local _, h2, l2 = createCard("Радиус стрелок", tostring(Config.ArrowsRadius))
         createCardSlider(h2, 50, 300, "ArrowsRadius", l2)
         
         local _, h3, l3 = createCard("Размер элементов", tostring(Config.ArrowsSize))
         createCardSlider(h3, 8, 35, "ArrowsSize", l3)
-        
-        local _, h4 = createCard("Фильтрация целей", nil)
-        createCardTag(h4, "Игроки", "ArrowsShowPlayers")
-        createCardTag(h4, "Друзья", "ArrowsShowFriends")
     end
 end
 
--- Рендер кнопок модулей в среднем ряду
+-- Модули в списке
 local modules = {"chinaHat", "jumpCircle", "arrows"}
 for _, name in ipairs(modules) do
     local btn = Instance.new("TextButton", scrollModules)
@@ -287,21 +281,19 @@ for _, name in ipairs(modules) do
     end)
 end
 
--- Левые иконки категорий (Сайдбар)
-local assetIcons = {120146441316947, 125523121468315, 106812709821478}
+-- Иконки табов
+local assetIcons = {106812709821478, 120146441316947, 125523121468315}
 for _, id in ipairs(assetIcons) do
     local b = Instance.new("ImageButton", sidebarIcons)
-    b.Size = UDim2.new(0, 28, 0, 28)
+    b.Size = UDim2.new(0, 24, 0, 24)
     b.BackgroundTransparency = 1
     b.Image = "rbxassetid://" .. id
     b.ImageColor3 = COLORS.TextGray
 end
 
--- Дефолтный фокус на первый элемент при открытии
 openSettingsFor("chinaHat")
 
--- Автоподсчет высоты холста под карточки
-mainScrollLayout = Instance.new("UIListLayout", mainSettingsScroll) -- Заглушка для автовычисления
+-- Фикс скролла под контент
 columnsContainer:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
     mainSettingsScroll.CanvasSize = UDim2.new(0, 0, 0, columnsContainer.AbsoluteSize.Y + 30)
 end)
