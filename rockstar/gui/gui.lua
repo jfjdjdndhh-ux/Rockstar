@@ -1,43 +1,51 @@
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
 local Rockstar = shared.Rockstar
 local Config = Rockstar.Config
 
 local COLORS = {
-    Bg = Color3.fromRGB(15, 15, 19),
+    Background = Color3.fromRGB(15, 15, 19),
     Sidebar = Color3.fromRGB(11, 11, 14),
-    MidList = Color3.fromRGB(13, 13, 16),
-    RightBg = Color3.fromRGB(21, 21, 26),
+    ModuleList = Color3.fromRGB(13, 13, 16),
+    ElementBg = Color3.fromRGB(21, 21, 26),
     AccentPink = Color3.fromRGB(242, 155, 180),
     TextWhite = Color3.fromRGB(255, 255, 255),
-    TextGray = Color3.fromRGB(140, 140, 145)
+    TextGray = Color3.fromRGB(140, 140, 145),
+    Lines = Color3.fromRGB(25, 25, 32)
 }
 
-if game:GetService("CoreGui"):FindFirstChild("RockstarMenu") then 
-    game:GetService("CoreGui").RockstarMenu:Destroy() 
-end
+if playerGui:FindFirstChild("RockstarGui") then playerGui.RockstarGui:Destroy() end
 
-local mainGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-mainGui.Name = "RockstarMenu"
+local rockstarGui = Instance.new("ScreenGui", playerGui)
+rockstarGui.Name = "RockstarGui"
+rockstarGui.ResetOnSpawn = false
 
--- ВОЗВРАЩАЕМ РОДНЫЕ РАЗМЕРЫ ТВОЕГО МЕНЮ
-local mainFrame = Instance.new("Frame", mainGui)
+-- Оригинальные размеры 760x440 без ломающих UIScale
+local mainFrame = Instance.new("Frame", rockstarGui)
+mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 760, 0, 440)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-mainFrame.BackgroundColor3 = COLORS.Bg
+mainFrame.BackgroundColor3 = COLORS.Background
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
--- Фикс драггера: теперь одинаково чётко работает и на мышке, и на пальцах (Touch)
-local function makeDraggable(gui)
+-- Поддержка Touch + Mouse для перетаскивания на смартфонах
+local function makeDraggable(gui, dragHandle)
     local dragging, dragInput, dragStart, startPos
-    gui.InputBegan:Connect(function(input)
+    dragHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true; dragStart = input.Position; startPos = gui.Position
             input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
     end)
-    gui.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end end)
+    dragHandle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
@@ -45,159 +53,186 @@ local function makeDraggable(gui)
         end
     end)
 end
-makeDraggable(mainFrame)
 
--- Сайдбар (Вкладки слева)
+-- Левый сайдбар
 local sidebar = Instance.new("Frame", mainFrame)
-sidebar.Size = UDim2.new(0, 55, 1, 0)
+sidebar.Size = UDim2.new(0, 45, 1, 0)
 sidebar.BackgroundColor3 = COLORS.Sidebar
 Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 10)
 
-local sidebarLayout = Instance.new("UIListLayout", sidebar)
-sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-sidebarLayout.Padding = UDim.new(0, 15)
+local sidebarIcons = Instance.new("Frame", sidebar)
+sidebarIcons.Size = UDim2.new(1, 0, 1, -55)
+sidebarIcons.Position = UDim2.new(0, 0, 0, 55)
+sidebarIcons.BackgroundTransparency = 1
+local sideLayout = Instance.new("UIListLayout", sidebarIcons)
+sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+sideLayout.Padding = UDim.new(0, 10)
 
--- Центральный список модулей
-local midPanel = Instance.new("Frame", mainFrame)
-midPanel.Size = UDim2.new(0, 175, 1, 0)
-midPanel.Position = UDim2.new(0, 55, 0, 0)
-midPanel.BackgroundColor3 = COLORS.MidList
-midPanel.BorderSizePixel = 0
+-- Средняя панель (Список модулей)
+local moduleList = Instance.new("Frame", mainFrame)
+moduleList.Size = UDim2.new(0, 140, 1, 0)
+moduleList.Position = UDim2.new(0, 45, 0, 0)
+moduleList.BackgroundColor3 = COLORS.ModuleList
+moduleList.BorderSizePixel = 0
 
-local midScroll = Instance.new("ScrollingFrame", midPanel)
-midScroll.Size = UDim2.new(1, -10, 1, -20)
-midScroll.Position = UDim2.new(0, 5, 0, 10)
-midScroll.BackgroundTransparency = 1
-midScroll.ScrollBarThickness = 0
-local midLayout = Instance.new("UIListLayout", midScroll)
-midLayout.Padding = UDim.new(0, 6)
+local moduleHeader = Instance.new("TextLabel", moduleList)
+moduleHeader.Size = UDim2.new(1, 0, 0, 45)
+moduleHeader.Position = UDim2.new(0, 12, 0, 0)
+moduleHeader.BackgroundTransparency = 1
+moduleHeader.Text = "Визуалы"
+moduleHeader.TextColor3 = COLORS.TextWhite
+moduleHeader.TextSize = 14
+moduleHeader.Font = Enum.Font.GothamBold
+moduleHeader.TextXAlignment = Enum.TextXAlignment.Left
 
--- Правая панель контейнера настроек
-local rightPanel = Instance.new("Frame", mainFrame)
-rightPanel.Size = UDim2.new(1, -230, 1, 0)
-rightPanel.Position = UDim2.new(0, 230, 0, 0)
-rightPanel.BackgroundTransparency = 1
+local scrollModules = Instance.new("ScrollingFrame", moduleList)
+scrollModules.Size = UDim2.new(1, 0, 1, -45)
+scrollModules.Position = UDim2.new(0, 0, 0, 45)
+scrollModules.BackgroundTransparency = 1
+scrollModules.ScrollBarThickness = 0
+Instance.new("UIListLayout", scrollModules).Padding = UDim.new(0, 2)
 
-local rightScroll = Instance.new("ScrollingFrame", rightPanel)
-rightScroll.Size = UDim2.new(1, -20, 1, -20)
-rightScroll.Position = UDim2.new(0, 10, 0, 10)
-rightScroll.BackgroundTransparency = 1
-rightScroll.ScrollBarThickness = 2
-rightScroll.ScrollBarImageColor3 = COLORS.TextGray
-local rightLayout = Instance.new("UIListLayout", rightScroll)
-rightLayout.Padding = UDim.new(0, 10)
+-- Правая рабочая область под настройки карточек
+local contentFrame = Instance.new("Frame", mainFrame)
+contentFrame.Size = UDim2.new(1, -185, 1, 0)
+contentFrame.Position = UDim2.new(0, 185, 0, 0)
+contentFrame.BackgroundTransparency = 1
 
-local function clearSettings()
-    for _, item in ipairs(rightScroll:GetChildren()) do
-        if not item:IsA("UIListLayout") then item:Destroy() end
+local topBar = Instance.new("Frame", contentFrame)
+topBar.Size = UDim2.new(1, 0, 0, 45)
+topBar.BackgroundTransparency = 1
+
+local mainSettingsScroll = Instance.new("ScrollingFrame", contentFrame)
+mainSettingsScroll.Size = UDim2.new(1, 0, 1, -45)
+mainSettingsScroll.Position = UDim2.new(0, 0, 0, 45)
+mainSettingsScroll.BackgroundTransparency = 1
+mainSettingsScroll.ScrollBarThickness = 2
+mainSettingsScroll.ScrollBarImageColor3 = COLORS.TextGray
+Instance.new("UIPadding", mainSettingsScroll).PaddingLeft = UDim.new(0, 15)
+
+local columnsContainer = Instance.new("Frame", mainSettingsScroll)
+columnsContainer.Size = UDim2.new(1, -15, 0, 0)
+columnsContainer.AutomaticSize = Enum.AutomaticSize.Y
+columnsContainer.BackgroundTransparency = 1
+
+local columnsGrid = Instance.new("UIGridLayout", columnsContainer)
+columnsGrid.CellPadding = UDim2.new(0, 12, 0, 12)
+columnsGrid.CellSize = UDim2.new(0.5, -6, 0, 110)
+
+makeDraggable(mainFrame, sidebar)
+makeDraggable(mainFrame, topBar)
+
+local function clearRightPanel()
+    for _, item in ipairs(columnsContainer:GetChildren()) do
+        if not item:IsA("UIGridLayout") then item:Destroy() end
     end
 end
 
--- Сборщик Чекбоксов/Тумблеров
-local function createToggleSetting(title, configKey, callback)
-    local row = Instance.new("Frame", rightScroll)
-    row.Size = UDim2.new(1, 0, 0, 42)
-    row.BackgroundColor3 = COLORS.RightBg
-    row.BackgroundTransparency = 1
-    local corner = Instance.new("UICorner", row)
+-- Конструктор оригинальных карточек
+local function createCard(titleText, rightText)
+    local card = Instance.new("Frame", columnsContainer)
+    card.BackgroundColor3 = COLORS.ElementBg
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
     
-    local lbl = Instance.new("TextLabel", row)
-    lbl.Size = UDim2.new(1, -70, 1, 0)
-    lbl.Position = UDim2.new(0, 12, 0, 0)
-    lbl.Text = title
-    lbl.TextColor3 = COLORS.TextWhite
-    lbl.Font = Enum.Font.GothamMedium
-    lbl.TextSize = 13
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.BackgroundTransparency = 1
+    local t = Instance.new("TextLabel", card)
+    t.Size = UDim2.new(0.6, 0, 0, 24)
+    t.Position = UDim2.new(0, 12, 0, 6)
+    t.BackgroundTransparency = 1
+    t.Text = titleText
+    t.TextColor3 = COLORS.TextWhite
+    t.TextSize = 12
+    t.Font = Enum.Font.GothamBold
+    t.TextXAlignment = Enum.TextXAlignment.Left
     
-    local btn = Instance.new("TextButton", row)
-    btn.Size = UDim2.new(0, 38, 0, 20)
-    btn.Position = UDim2.new(1, -50, 0.5, -10)
-    btn.BackgroundColor3 = Config[configKey] and COLORS.AccentPink or COLORS.Bg
-    btn.Text = ""
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+    local rt = nil
+    if rightText then
+        rt = Instance.new("TextLabel", card)
+        rt.Size = UDim2.new(0.35, 0, 0, 24)
+        rt.Position = UDim2.new(1, -12, 0, 6)
+        rt.BackgroundTransparency = 1
+        rt.Text = rightText
+        rt.TextColor3 = COLORS.TextGray
+        rt.TextSize = 11
+        rt.Font = Enum.Font.Gotham
+        rt.TextXAlignment = Enum.TextXAlignment.Right
+    end
+
+    local holder = Instance.new("Frame", card)
+    holder.Size = UDim2.new(1, -24, 1, -34)
+    holder.Position = UDim2.new(0, 12, 0, 32)
+    holder.BackgroundTransparency = 1
     
-    local circle = Instance.new("Frame", btn)
-    circle.Size = UDim2.new(0, 14, 0, 14)
-    circle.Position = Config[configKey] and UDim2.new(1, -16, 0, 3) or UDim2.new(0, 2, 0, 3)
-    circle.BackgroundColor3 = COLORS.TextWhite
-    Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
-    
-    TweenService:Create(row, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
-    
+    local layout = Instance.new("UIListLayout", holder)
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.Wraps = true
+    layout.Padding = UDim.new(0, 5)
+
+    return card, holder, rt
+end
+
+-- Кнопки-переключатели параметров внутри карточек
+local function createCardTag(holder, text, configKey)
+    local btn = Instance.new("TextButton", holder)
+    btn.BackgroundColor3 = Config[configKey] and COLORS.AccentPink or COLORS.Background
+    btn.Text = text
+    btn.TextColor3 = Config[configKey] and Color3.fromRGB(15,15,15) or COLORS.TextGray
+    btn.TextSize = 10
+    btn.Font = Enum.Font.Gotham
+    btn.AutomaticSize = Enum.AutomaticSize.X
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIPadding", btn).PaddingLeft = UDim.new(0, 6)
+    btn.Parent.UIListLayout.Parent.Parent.UIPadding.Parent.UIPadding.PaddingRight = UDim.new(0, 6) -- Безопасный патч отступов
+
     btn.MouseButton1Click:Connect(function()
         Config[configKey] = not Config[configKey]
         if Config[configKey] then
-            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.AccentPink}):Play()
-            TweenService:Create(circle, TweenInfo.new(0.15), {Position = UDim2.new(1, -16, 0, 3)}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.12), {BackgroundColor3 = COLORS.AccentPink, TextColor3 = Color3.fromRGB(15,15,15)}):Play()
         else
-            TweenService:Create(btn, TweenInfo.new(0.15), {BackgroundColor3 = COLORS.Bg}):Play()
-            TweenService:Create(circle, TweenInfo.new(0.15), {Position = UDim2.new(0, 2, 0, 3)}):Play()
+            TweenService:Create(btn, TweenInfo.new(0.12), {BackgroundColor3 = COLORS.Background, TextColor3 = COLORS.TextGray}):Play()
         end
-        if callback then callback(Config[configKey]) end
     end)
 end
 
--- Сборщик Ползунков (Слайдеров) — с полной тач-поддержкой пальца на телефоне
-local function createSliderSetting(title, min, max, configKey, callback)
-    local row = Instance.new("Frame", rightScroll)
-    row.Size = UDim2.new(1, 0, 0, 55)
-    row.BackgroundColor3 = COLORS.RightBg
-    row.BackgroundTransparency = 1
-    Instance.new("UICorner", row)
+-- Интерактивный Слайдер для правой панели
+local function createCardSlider(holder, min, max, configKey, lbl)
+    local sBg = Instance.new("Frame", holder)
+    sBg.Size = UDim2.new(1, 0, 0, 4)
+    sBg.Position = UDim2.new(0, 0, 0, 14)
+    sBg.BackgroundColor3 = COLORS.Background
     
-    local lbl = Instance.new("TextLabel", row)
-    lbl.Size = UDim2.new(1, -20, 0, 22)
-    lbl.Position = UDim2.new(0, 12, 0, 6)
-    lbl.Text = title .. ": " .. tostring(Config[configKey])
-    lbl.TextColor3 = COLORS.TextWhite
-    lbl.Font = Enum.Font.GothamMedium
-    lbl.TextSize = 12
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.BackgroundTransparency = 1
+    local sFill = Instance.new("Frame", sBg)
+    sFill.Size = UDim2.new((Config[configKey] - min)/(max - min), 0, 1, 0)
+    sFill.BackgroundColor3 = COLORS.AccentPink
     
-    local sliderBg = Instance.new("Frame", row)
-    sliderBg.Size = UDim2.new(1, -24, 0, 6)
-    sliderBg.Position = UDim2.new(0, 12, 0, 36)
-    sliderBg.BackgroundColor3 = COLORS.Bg
-    Instance.new("UICorner", sliderBg)
+    local sBtn = Instance.new("TextButton", sBg)
+    sBtn.Size = UDim2.new(1, 0, 1, 14)
+    sBtn.Position = UDim2.new(0, 0, 0, -7)
+    sBtn.BackgroundTransparency = 1
+    sBtn.Text = ""
     
-    local fill = Instance.new("Frame", sliderBg)
-    fill.Size = UDim2.new((Config[configKey] - min)/(max - min), 0, 1, 0)
-    fill.BackgroundColor3 = COLORS.AccentPink
-    Instance.new("UICorner", fill)
+    local dragging = false
+    local function update(input)
+        local pct = math.clamp((input.Position.X - sBg.AbsolutePosition.X) / sBg.AbsoluteSize.X, 0, 1)
+        sFill.Size = UDim2.new(pct, 0, 1, 0)
+        local val = math.floor(min + (pct * (max - min)))
+        Config[configKey] = val
+        if lbl then lbl.Text = tostring(val) end
+    end
     
-    local trigger = Instance.new("TextButton", sliderBg)
-    trigger.Size = UDim2.new(1, 0, 1, 0)
-    trigger.BackgroundTransparency = 1
-    trigger.Text = ""
-    
-    TweenService:Create(row, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
-    
-    trigger.MouseButton1Down:Connect(function()
-        local moveConn
-        moveConn = UserInputService.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                local relativeX = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
-                fill.Size = UDim2.new(relativeX, 0, 1, 0)
-                local val = math.floor(min + (max - min) * relativeX)
-                lbl.Text = title .. ": " .. tostring(val)
-                Config[configKey] = val
-                if callback then callback(val) end
-            end
-        end)
-        UserInputService.InputEnded:Connect(function(endInput)
-            if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then 
-                moveConn:Disconnect() 
-            end
-        end)
+    sBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true; update(input) end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then update(input) end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
     end)
 end
 
--- Автозагрузка модулей
+-- Автозапуск зависимых модулей при первом обращении
 local loadedModules = {}
-local function ensureModuleLoaded(name)
+local function loadModuleScript(name)
     if not loadedModules[name] then
         loadedModules[name] = true
         task.spawn(function()
@@ -206,63 +241,67 @@ local function ensureModuleLoaded(name)
     end
 end
 
--- Открытие настроек модуля в правом окне
-local function openModuleSettings(modName)
-    clearSettings()
-    ensureModuleLoaded(modName)
+-- Динамическое переключение правого окна настроек по клику на модули
+local function openSettingsFor(modName)
+    clearRightPanel()
+    loadModuleScript(modName)
     
     if modName == "chinaHat" then
-        createToggleSetting("Включить модуль ChinaHat", "ChinaHat")
+        local _, h = createCard("Настройки Шапки", nil)
+        createCardTag(h, "Активировать ChinaHat", "ChinaHat")
     elseif modName == "jumpCircle" then
-        createToggleSetting("Включить модуль JumpCircle", "JumpCircle")
+        local _, h = createCard("Настройки Кругов", nil)
+        createCardTag(h, "Активировать JumpCircle", "JumpCircle")
     elseif modName == "arrows" then
-        createToggleSetting("Включить модуль Стрелочки", "Arrows")
-        createSliderSetting("Радиус от прицела", 50, 300, "ArrowsRadius")
-        createSliderSetting("Размер стрелочек", 8, 35, "ArrowsSize")
-        createToggleSetting("Показывать Игроков", "ArrowsShowPlayers")
-        createToggleSetting("Показывать Друзей", "ArrowsShowFriends")
-    end
-end
-
--- Загрузка списка функций по центру при смене вкладок
-local function loadCategoryModules(cat)
-    for _, c in ipairs(midScroll:GetChildren()) do if c:IsA("TextButton") then c:Destroy() end end
-    
-    local list = (cat == "Visuals") and {"chinaHat", "jumpCircle"} or {"arrows"}
-    
-    for _, name in ipairs(list) do
-        local btn = Instance.new("TextButton", midScroll)
-        btn.Size = UDim2.new(1, 0, 0, 36)
-        btn.BackgroundColor3 = COLORS.Bg
-        btn.Text = "  " .. name
-        btn.TextColor3 = COLORS.TextWhite
-        btn.Font = Enum.Font.GothamMedium
-        btn.TextSize = 13
-        btn.TextXAlignment = Enum.TextXAlignment.Left
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        local _, h1 = createCard("Включить модуль", nil)
+        createCardTag(h1, "Активировать Стрелочки", "Arrows")
         
-        btn.MouseButton1Click:Connect(function()
-            openModuleSettings(name)
-        end)
+        local _, h2, l2 = createCard("Радиус стрелок", tostring(Config.ArrowsRadius))
+        createCardSlider(h2, 50, 300, "ArrowsRadius", l2)
+        
+        local _, h3, l3 = createCard("Размер элементов", tostring(Config.ArrowsSize))
+        createCardSlider(h3, 8, 35, "ArrowsSize", l3)
+        
+        local _, h4 = createCard("Фильтрация целей", nil)
+        createCardTag(h4, "Игроки", "ArrowsShowPlayers")
+        createCardTag(h4, "Друзья", "ArrowsShowFriends")
     end
 end
 
--- Создание табов в левом сайдбаре
-local tabs = { {Name = "Visuals", Icon = "rbxassetid://6023426915"}, {Name = "Render", Icon = "rbxassetid://6034287525"} }
-for _, tabData in ipairs(tabs) do
-    local tabBtn = Instance.new("ImageButton", sidebar)
-    tabBtn.Size = UDim2.new(0, 32, 0, 32)
-    tabBtn.BackgroundTransparency = 1
-    tabBtn.Image = tabData.Icon
-    tabBtn.ImageColor3 = (tabData.Name == "Visuals") and COLORS.AccentPink or COLORS.TextGray
+-- Рендер кнопок модулей в среднем ряду
+local modules = {"chinaHat", "jumpCircle", "arrows"}
+for _, name in ipairs(modules) do
+    local btn = Instance.new("TextButton", scrollModules)
+    btn.Size = UDim2.new(1, 0, 0, 26)
+    btn.BackgroundTransparency = 1
+    btn.Text = "   " .. name
+    btn.TextColor3 = COLORS.TextGray
+    btn.TextSize = 12
+    btn.Font = Enum.Font.Gotham
+    btn.TextXAlignment = Enum.TextXAlignment.Left
     
-    tabBtn.MouseButton1Click:Connect(function()
-        for _, b in ipairs(sidebar:GetChildren()) do
-            if b:IsA("ImageButton") then b.ImageColor3 = COLORS.TextGray end
-        end
-        tabBtn.ImageColor3 = COLORS.AccentPink
-        loadCategoryModules(tabData.Name)
+    btn.MouseButton1Click:Connect(function()
+        for _, c in ipairs(scrollModules:GetChildren()) do if c:IsA("TextButton") then c.TextColor3 = COLORS.TextGray end end
+        btn.TextColor3 = COLORS.TextWhite
+        openSettingsFor(name)
     end)
 end
 
-loadCategoryModules("Visuals")
+-- Левые иконки категорий (Сайдбар)
+local assetIcons = {120146441316947, 125523121468315, 106812709821478}
+for _, id in ipairs(assetIcons) do
+    local b = Instance.new("ImageButton", sidebarIcons)
+    b.Size = UDim2.new(0, 28, 0, 28)
+    b.BackgroundTransparency = 1
+    b.Image = "rbxassetid://" .. id
+    b.ImageColor3 = COLORS.TextGray
+end
+
+-- Дефолтный фокус на первый элемент при открытии
+openSettingsFor("chinaHat")
+
+-- Автоподсчет высоты холста под карточки
+mainScrollLayout = Instance.new("UIListLayout", mainSettingsScroll) -- Заглушка для автовычисления
+columnsContainer:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+    mainSettingsScroll.CanvasSize = UDim2.new(0, 0, 0, columnsContainer.AbsoluteSize.Y + 30)
+end)
