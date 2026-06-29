@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local camera = workspace.CurrentCamera
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -28,13 +29,33 @@ rockstarGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame", rockstarGui)
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 760, 0, 440)
+mainFrame.Size = UDim2.new(0, 760, 0, 440) -- Оригинальные размеры
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = COLORS.Background
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
 
--- Универсальный Драггер Touch + Mouse для телефонов
+-- ==========================================================
+-- 🔥 МАГИЯ ДЛЯ ТЕЛЕФОНОВ: АВТО-МАСШТАБИРОВАНИЕ 🔥
+-- ==========================================================
+local uiScale = Instance.new("UIScale", mainFrame)
+
+local function updateScale()
+    local screen = camera.ViewportSize
+    -- Высчитываем масштаб так, чтобы меню занимало не больше 90% экрана
+    local scaleX = (screen.X * 0.9) / 760
+    local scaleY = (screen.Y * 0.9) / 440
+    local minScale = math.min(scaleX, scaleY)
+    
+    -- Если экран большой, оставляем масштаб 1 (100%), если маленький — сжимаем
+    uiScale.Scale = minScale < 1 and minScale or 1
+end
+
+updateScale()
+camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+-- ==========================================================
+
+-- Универсальный Драггер Touch + Mouse
 local function makeDraggable(gui, dragHandle)
     local dragging, dragInput, dragStart, startPos
     dragHandle.InputBegan:Connect(function(input)
