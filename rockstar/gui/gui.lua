@@ -508,4 +508,50 @@ end
 
 rebuildModuleList("Visuals")
 
--- СМЕН
+-- СМЕНА ВКЛАДОК В САЙДБАРЕ
+local assetIcons = {
+    {Category = "Visuals", id = "rbxassetid://6023426915"},  
+    {Category = "Movement", id = "rbxassetid://6031763426"}, 
+    {Category = "Render", id = "rbxassetid://6034287525"}   
+}
+
+for i, iconData in ipairs(assetIcons) do
+    local btn = Instance.new("ImageButton")
+    btn.Size = UDim2.new(0, 24, 0, 24)
+    btn.BackgroundTransparency = 1
+    btn.Image = iconData.id
+    btn.ScaleType = Enum.ScaleType.Fit
+    btn.ImageColor3 = (iconData.Category == "Visuals") and COLORS.AccentPink or COLORS.TextGray
+    btn.Parent = sidebarIcons
+    
+    local activeBar = Instance.new("Frame")
+    activeBar.Size = UDim2.new(0, 3, 0, 16)
+    activeBar.Position = UDim2.new(0, -8, 0, 4)
+    activeBar.BackgroundColor3 = COLORS.AccentPink
+    activeBar.BorderSizePixel = 0
+    activeBar.Visible = (iconData.Category == "Visuals")
+    activeBar.Parent = btn
+    Instance.new("UICorner", activeBar).CornerRadius = UDim.new(1, 0)
+    
+    btn.MouseButton1Click:Connect(function()
+        -- Сбрасываем все кнопки панели
+        for _, sidebarBtn in ipairs(sidebarIcons:GetChildren()) do
+            if sidebarBtn:IsA("ImageButton") then
+                sidebarBtn.ImageColor3 = COLORS.TextGray
+                if sidebarBtn:FindFirstChild("Frame") then sidebarBtn.Frame.Visible = false end
+            end
+        end
+        
+        -- Активируем выбранную кнопку
+        btn.ImageColor3 = COLORS.AccentPink
+        activeBar.Visible = true
+        
+        -- Переключаем видимость страниц с карточками настроек
+        for name, page in pairs(pages) do 
+            page.Visible = (name == iconData.Category) 
+        end
+        
+        -- Обновляем список модулей в среднем ряду
+        rebuildModuleList(iconData.Category)
+    end)
+end
