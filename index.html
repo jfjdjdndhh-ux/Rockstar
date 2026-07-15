@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>sample ui</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
+  }
+  *:focus,
+  *:focus-visible,
+  *:active {
+    outline: none !important;
+  }
+  body {
+    background: #0a0a0a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #ddd;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  .wrapper {
+    position: relative;
+    width: 1000px;
+    height: 560px;
+    margin: 80px auto;
+  }
+
+  /* ---------- Main panel ---------- */
+  .panel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 588px;
+    border: 1px solid #232323;
+    border-radius: 8px;
+    background: #0c0c0c;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid #1d1d1d;
+    gap: 26px;
+  }
+  .panel-title {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #f2f2f2;
+    margin-right: 6px;
+  }
+  .tab {
+    color: #6b6b6b;
+    font-size: 13px;
+    cursor: pointer;
+    padding-bottom: 8px;
+    margin-bottom: -8px;
+    border-bottom: 2px solid transparent;
+    transition: color .15s;
+  }
+  .tab:hover { color: #b7b7b7; }
+  .tab.active {
+    color: #eaeaea;
+    border-bottom: 2px solid #4d8dff;
+  }
+
+  .panel-body {
+    display: flex;
+    padding: 16px;
+    gap: 16px;
+  }
+
+  /* left sub-nav */
+  .subnav {
+    width: 110px;
+    border: 1px solid #1d1d1d;
+    border-radius: 6px;
+    padding: 4px 0;
+    min-height: 380px;
+  }
+  .subnav-item {
+    padding: 8px 14px;
+    font-size: 13px;
+    color: #6b6b6b;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: color .15s, background .15s;
+  }
+  .subnav-item:hover { color: #b7b7b7; }
+  .subnav-item.active {
+    color: #eaeaea;
+    border-left: 2px solid #4d8dff;
+    background: rgba(77,141,255,0.06);
+  }
+
+  /* boxes */
+  .box {
+    border: 1px solid #1d1d1d;
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .box-title {
+    color: #6b6b6b;
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .esp-box {
+    width: 200px;
+    min-height: 380px;
+  }
+  .models-col {
+    width: 210px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .models-box { min-height: 130px; }
+  .extra-box { min-height: 220px; }
+  .extra-text { color: #4a4a4a; font-size: 12.5px; }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #d8d8d8;
+    cursor: pointer;
+  }
+  .check-row label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #3a3a3a;
+    border-radius: 3px;
+    background: #111;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    box-shadow: none;
+  }
+  input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  input[type="checkbox"]:checked {
+    background: #e8e8e8;
+    border-color: #e8e8e8;
+  }
+  input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid #111;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+
+  .swatch {
+    width: 34px;
+    height: 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .field-label {
+    color: #6b6b6b;
+    font-size: 12px;
+    margin: 4px 0 6px;
+  }
+
+  .dropdown-wrap { position: relative; }
+  .dropdown {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #262626;
+    border-radius: 5px;
+    padding: 7px 10px;
+    font-size: 12.5px;
+    color: #d8d8d8;
+    background: #101010;
+    cursor: pointer;
+  }
+  .dropdown .arrow { color: #6b6b6b; font-size: 10px; transition: transform .15s; }
+  .dropdown.open .arrow { transform: rotate(180deg); }
+
+  .dropdown-list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    border: 1px solid #262626;
+    border-radius: 5px;
+    background: #101010;
+    overflow: hidden;
+    z-index: 5;
+    display: none;
+  }
+  .dropdown-list.show { display: block; }
+  .dropdown-list div {
+    padding: 7px 10px;
+    font-size: 12.5px;
+    color: #b7b7b7;
+    cursor: pointer;
+  }
+  .dropdown-list div:hover { background: #1a1a1a; color: #eaeaea; }
+
+  /* ---------- Color picker panel ---------- */
+  .colorpicker {
+    position: absolute;
+    left: 620px;
+    top: 0;
+    width: 240px;
+    border: 1px solid #232323;
+    border-radius: 8px;
+    background: #0c0c0c;
+    padding: 16px;
+  }
+  .cp-header {
+    display: flex;
+    justify-content: flex-end;
+    color: #8a8a8a;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+  .cp-main {
+    display: flex;
+    gap: 8px;
+  }
+  .sv-square {
+    position: relative;
+    width: 184px;
+    height: 184px;
+    border-radius: 4px;
+    cursor: crosshair;
+    background:
+      linear-gradient(to top, #000 0%, rgba(0,0,0,0) 100%),
+      linear-gradient(to right, #fff 0%, rgba(255,255,255,0) 100%),
+      #ff0000;
+  }
+  .sv-square .cursor {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    transform: translate(-50%,-50%);
+    box-shadow: 0 0 2px rgba(0,0,0,0.6);
+    pointer-events: none;
+  }
+  .hue-slider {
+    position: relative;
+    width: 16px;
+    height: 184px;
+    border-radius: 3px;
+    cursor: pointer;
+    background: linear-gradient(to bottom,
+      #ff0000 0%, #ff00ff 17%, #0000ff 34%, #00ffff 50%,
+      #00ff00 67%, #ffff00 84%, #ff0000 100%);
+  }
+  .hue-slider .marker {
+    position: absolute;
+    left: -3px;
+    right: -3px;
+    height: 0;
+    pointer-events: none;
+  }
+  .hue-slider .marker::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: -6px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid #ddd;
+  }
+
+  .cp-values {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .rgb-box {
+    flex: 1;
+    border: 1px solid #262626;
+    border-radius: 5px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: #b0b0b0;
+    text-align: center;
+    background: #101010;
+  }
+  .rgb-swatch-small, .hex-swatch-small {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .cp-hex {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .hex-box {
+    flex: 1;
+    border: 1px solid #262626;
+    border-radius: 5px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #d8d8d8;
+    background: #101010;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Main panel -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">sample ui</span>
+      <span class="tab active" data-tab="misc">Misc</span>
+    </div>
+
+    <div class="panel-body">
+      <div class="subnav">
+        <div class="subnav-item active" data-sub="player">Player</div>
+        <div class="subnav-item" data-sub="weapon">Weapon</div>
+      </div>
+
+      <div class="box esp-box">
+        <div class="box-title" id="espTitle">ESP</div>
+        <div class="check-row">
+          <label><input type="checkbox" id="chkEnable"> Enable</label>
+        </div>
+        <div class="check-row">
+          <label><input type="checkbox" id="chkBox"> Box</label>
+          <span class="swatch" id="swatchBox" style="background:#4d8dff"></span>
+        </div>
+        <div class="check-row">
+          <label><input type="checkbox" id="chkName" checked> Name</label>
+          <span class="swatch" id="swatchName" style="background:#f2f2f2"></span>
+        </div>
+        <div class="check-row">
+          <label><input type="checkbox" id="chkHealth"> Health</label>
+        </div>
+      </div>
+
+      <div class="models-col">
+        <div class="box models-box">
+          <div class="box-title">Models</div>
+          <div class="check-row">
+            <label><input type="checkbox" id="chkGlow"> Glow</label>
+            <span class="swatch" id="swatchGlow" style="background:#cc33cc"></span>
+          </div>
+          <div class="field-label">Chams type</div>
+          <div class="dropdown-wrap">
+            <div class="dropdown" id="champDropdown">
+              <span id="champValue">Flat</span><span class="arrow">▾</span>
+            </div>
+            <div class="dropdown-list" id="champList">
+              <div data-val="Flat">Flat</div>
+              <div data-val="Wireframe">Wireframe</div>
+              <div data-val="Glow">Glow</div>
+              <div data-val="Full">Full</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box extra-box">
+          <div class="box-title">Extra</div>
+          <div class="extra-text">Coming soon...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color picker -->
+  <div class="colorpicker">
+    <div class="cp-header" id="cpTarget">glow_c</div>
+    <div class="cp-main">
+      <div class="sv-square" id="svSquare"><div class="cursor" id="svCursor"></div></div>
+      <div class="hue-slider" id="hueSlider"><div class="marker" id="hueMarker"></div></div>
+    </div>
+    <div class="cp-values">
+      <div class="rgb-box" id="rBox">R:204</div>
+      <div class="rgb-box" id="gBox">G:51</div>
+      <div class="rgb-box" id="bBox">B:204</div>
+      <div class="rgb-swatch-small" id="rgbSwatch" style="background:#cc33cc"></div>
+    </div>
+    <div class="cp-hex">
+      <div class="hex-box" id="hexBox">#CC33CC</div>
+      <div class="hex-swatch-small" id="hexSwatch" style="background:#cc33cc"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ---- Checkboxes: purely visual toggle (already native, no extra JS needed) ----
+
+  // ---- Dropdown ----
+  const champDropdown = document.getElementById('champDropdown');
+  const champList = document.getElementById('champList');
+  const champValue = document.getElementById('champValue');
+
+  champDropdown.addEventListener('click', (e) => {
+    e.stopPropagation();
+    champDropdown.classList.toggle('open');
+    champList.classList.toggle('show');
+  });
+  champList.querySelectorAll('div').forEach(item => {
+    item.addEventListener('click', () => {
+      champValue.textContent = item.dataset.val;
+      champDropdown.classList.remove('open');
+      champList.classList.remove('show');
+    });
+  });
+  document.addEventListener('click', () => {
+    champDropdown.classList.remove('open');
+    champList.classList.remove('show');
+  });
+
+  // ---- Top tab (only Misc, just keeps active state) ----
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // ---- Left subnav: Player / Weapon ----
+  const espTitle = document.getElementById('espTitle');
+  document.querySelectorAll('.subnav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.subnav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      espTitle.textContent = item.dataset.sub === 'player' ? 'ESP' : 'Weapon ESP';
+    });
+  });
+
+  // ---- Color picker logic ----
+  const svSquare = document.getElementById('svSquare');
+  const svCursor = document.getElementById('svCursor');
+  const hueSlider = document.getElementById('hueSlider');
+  const hueMarker = document.getElementById('hueMarker');
+  const rBox = document.getElementById('rBox');
+  const gBox = document.getElementById('gBox');
+  const bBox = document.getElementById('bBox');
+  const hexBox = document.getElementById('hexBox');
+  const rgbSwatch = document.getElementById('rgbSwatch');
+  const hexSwatch = document.getElementById('hexSwatch');
+  const swatchGlow = document.getElementById('swatchGlow');
+
+  let hue = 300, sat = 0.75, val = 0.8;
+
+  function hsvToRgb(h, s, v) {
+    let c = v * s;
+    let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    let m = v - c;
+    let r=0,g=0,b=0;
+    if (h < 60) [r,g,b] = [c,x,0];
+    else if (h < 120) [r,g,b] = [x,c,0];
+    else if (h < 180) [r,g,b] = [0,c,x];
+    else if (h < 240) [r,g,b] = [0,x,c];
+    else if (h < 300) [r,g,b] = [x,0,c];
+    else [r,g,b] = [c,0,x];
+    return [Math.round((r+m)*255), Math.round((g+m)*255), Math.round((b+m)*255)];
+  }
+
+  function toHex(n) { return n.toString(16).padStart(2,'0').toUpperCase(); }
+
+  function updateColor() {
+    const [r,g,b] = hsvToRgb(hue, sat, val);
+    const hex = '#' + toHex(r) + toHex(g) + toHex(b);
+    rBox.textContent = 'R:' + r;
+    gBox.textContent = 'G:' + g;
+    bBox.textContent = 'B:' + b;
+    hexBox.textContent = hex;
+    rgbSwatch.style.background = hex;
+    hexSwatch.style.background = hex;
+    swatchGlow.style.background = hex;
+    svSquare.style.background =
+      `linear-gradient(to top, #000 0%, rgba(0,0,0,0) 100%),
+       linear-gradient(to right, #fff 0%, rgba(255,255,255,0) 100%),
+       hsl(${hue},100%,50%)`;
+  }
+
+  function setSvCursor(x, y) {
+    svCursor.style.left = x + 'px';
+    svCursor.style.top = y + 'px';
+  }
+  function setHueMarker(y) {
+    hueMarker.style.top = y + 'px';
+  }
+
+  let draggingSv = false, draggingHue = false;
+
+  svSquare.addEventListener('mousedown', e => { draggingSv = true; handleSv(e); });
+  document.addEventListener('mousemove', e => {
+    if (draggingSv) handleSv(e);
+    if (draggingHue) handleHue(e);
+  });
+  document.addEventListener('mouseup', () => { draggingSv = false; draggingHue = false; });
+
+  function handleSv(e) {
+    const rect = svSquare.getBoundingClientRect();
+    let x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    let y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+    sat = x / rect.width;
+    val = 1 - (y / rect.height);
+    setSvCursor(x, y);
+    updateColor();
+  }
+
+  hueSlider.addEventListener('mousedown', e => { draggingHue = true; handleHue(e); });
+  function handleHue(e) {
+    const rect = hueSlider.getBoundingClientRect();
+    let y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+    hue = (y / rect.height) * 360;
+    setHueMarker(y);
+    updateColor();
+  }
+
+  // init positions matching #CC33CC-ish
+  setSvCursor(184*0.75, 184*0.2);
+  setHueMarker(184*0.83);
+  updateColor();
+</script>
+</body>
+</html>
